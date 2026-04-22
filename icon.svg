@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Tsui Board">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a040a"/>
+      <stop offset="1" stop-color="#030a06"/>
+    </linearGradient>
+    <linearGradient id="pen" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff26b3"/>
+      <stop offset="1" stop-color="#39ff77"/>
+    </linearGradient>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="6" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="512" height="512" rx="96" fill="url(#bg)"/>
+  <!-- ボード枠 -->
+  <rect x="88" y="112" width="336" height="260" rx="16" fill="#101418" stroke="#B2FFCA" stroke-width="4" opacity="0.85"/>
+  <!-- 雑なストローク -->
+  <g filter="url(#glow)" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke-width="10">
+    <path d="M128 190 q40 -40 90 10 t100 -20" stroke="#ff26b3"/>
+    <path d="M128 260 q60 30 130 -10 t130 10" stroke="#39ff77"/>
+    <path d="M150 320 h220" stroke="#ffc8f0" stroke-width="6" opacity="0.7"/>
+  </g>
+  <!-- ペン -->
+  <g filter="url(#glow)">
+    <path d="M360 360 l44 -44 l52 52 l-44 44 l-60 12 l8 -64 z"
+          fill="url(#pen)" stroke="#ffffff" stroke-width="3" stroke-linejoin="round"/>
+    <circle cx="366" cy="418" r="4" fill="#ffffff"/>
+  </g>
+</svg>
