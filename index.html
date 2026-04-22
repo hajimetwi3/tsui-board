@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="description" content="雑に絵を書けるWebホワイトボード。保存はPNG。データはブラウザ内のみに保存されます。">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#0f0f0f">
+<meta http-equiv="Content-Security-Policy"
+      content="default-src 'none'; style-src 'self'; script-src 'self'; worker-src 'self'; manifest-src 'self'; img-src 'self' data: blob:; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none';">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Tsui Board">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="style.css">
+<title>Tsui Board</title>
+</head>
+<body>
+  <header class="bar" id="bar">
+    <span class="title">TSUI BOARD</span>
+
+    <div class="group" role="group" aria-label="ツール">
+      <button class="tool-btn" data-tool="pen" aria-label="ペン" title="ペン (P)">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21l3.5-1 11-11-2.5-2.5-11 11L3 21z M14 7l3 3"/></svg>
+      </button>
+      <button class="tool-btn" data-tool="eraser" aria-label="消しゴム" title="消しゴム (E)">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17l9-9 4 4-9 9H6l-2-2z M13 8l3 3 3-3-3-3-3 3z"/></svg>
+      </button>
+    </div>
+
+    <div class="group colors desktop-only" role="group" aria-label="色">
+      <button class="color-btn" data-color="#111111" aria-label="黒"></button>
+      <button class="color-btn" data-color="#e53935" aria-label="赤"></button>
+      <button class="color-btn" data-color="#fb8c00" aria-label="橙"></button>
+      <button class="color-btn" data-color="#fdd835" aria-label="黄"></button>
+      <button class="color-btn" data-color="#43a047" aria-label="緑"></button>
+      <button class="color-btn" data-color="#1e88e5" aria-label="青"></button>
+      <button class="color-btn" data-color="#8e24aa" aria-label="紫"></button>
+      <input type="color" class="color-picker" id="color-picker" value="#111111" aria-label="任意色">
+    </div>
+
+    <div class="group size desktop-only" role="group" aria-label="太さ">
+      <span class="label">SIZE</span>
+      <input type="range" id="size" min="1" max="40" value="4" aria-label="太さ">
+      <span class="size-num" id="size-num">4</span>
+    </div>
+
+    <div class="group desktop-only" role="group" aria-label="ページ">
+      <button id="page-btn" class="page-btn" title="ページ切替（Shift+クリックで前へ）" aria-label="ページ切替">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h9l4 4v12H6z M15 4v4h4"/></svg>
+        <span><span id="page-cur">1</span>/5</span>
+      </button>
+    </div>
+
+    <div class="spacer"></div>
+
+    <div class="group" role="group" aria-label="操作">
+      <button id="undo" title="元に戻す (Ctrl/⌘+Z)" aria-label="元に戻す">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14l-4-4 4-4 M5 10h9a5 5 0 0 1 0 10h-4"/></svg>
+      </button>
+      <button id="redo" title="やり直し (Ctrl/⌘+Shift+Z)" aria-label="やり直し">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 14l4-4-4-4 M19 10h-9a5 5 0 0 0 0 10h4"/></svg>
+      </button>
+      <button id="clear" class="desktop-only" title="全消し（現ページ）" aria-label="全消し">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16 M10 11v6 M14 11v6 M5 7l1 13h12l1-13 M9 7V4h6v3"/></svg>
+      </button>
+      <button id="copy" class="desktop-only" title="コピー (Ctrl/⌘+C)" aria-label="コピー">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>
+      </button>
+      <button id="paste" class="desktop-only" title="貼り付け (Ctrl/⌘+V)" aria-label="貼り付け">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6v3H9z M7 5H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-2"/></svg>
+      </button>
+      <button id="save" class="accent" title="PNG保存 (Ctrl/⌘+S)" aria-label="PNG保存">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12 M7 10l5 5 5-5 M4 19h16"/></svg>
+        <span>PNG</span>
+      </button>
+      <button id="menu-btn" title="設定" aria-label="設定">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="stage" id="stage">
+    <canvas id="canvas" aria-label="ホワイトボード"></canvas>
+  </main>
+
+  <!-- 設定パネル（メニュー） -->
+  <div class="panel" id="panel" role="group" aria-label="設定">
+    <!-- モバイルで本体UI集約 -->
+    <div class="panel-row mobile-only">
+      <span class="label">COLOR</span>
+      <div class="m-colors">
+        <button class="color-btn" data-color="#111111" aria-label="黒"></button>
+        <button class="color-btn" data-color="#e53935" aria-label="赤"></button>
+        <button class="color-btn" data-color="#fb8c00" aria-label="橙"></button>
+        <button class="color-btn" data-color="#fdd835" aria-label="黄"></button>
+        <button class="color-btn" data-color="#43a047" aria-label="緑"></button>
+        <button class="color-btn" data-color="#1e88e5" aria-label="青"></button>
+        <button class="color-btn" data-color="#8e24aa" aria-label="紫"></button>
+        <input type="color" class="color-picker m-color-picker" value="#111111" aria-label="任意色">
+      </div>
+    </div>
+    <div class="panel-row mobile-only m-size-row">
+      <span class="label">SIZE</span>
+      <input type="range" class="m-size" min="1" max="40" value="4" aria-label="太さ">
+      <span class="size-num m-size-num">4</span>
+    </div>
+    <div class="panel-row mobile-only">
+      <span class="label">PAGE</span>
+      <button class="m-page" data-act="prev" aria-label="前のページ">◀</button>
+      <span class="m-page-cur">1</span><span class="page-sep">/5</span>
+      <button class="m-page" data-act="next" aria-label="次のページ">▶</button>
+    </div>
+    <div class="panel-row mobile-only">
+      <span class="label">OPS</span>
+      <button class="m-op" data-op="copy">コピー</button>
+      <button class="m-op" data-op="paste">貼付</button>
+      <button class="m-op" data-op="clear">全消し</button>
+    </div>
+
+    <!-- デスクトップ・モバイル共通 -->
+    <div class="panel-row">
+      <span class="label">PAPER</span>
+      <button data-k="paper" data-v="white">白</button>
+      <button data-k="paper" data-v="board">黒</button>
+    </div>
+    <div class="panel-row">
+      <span class="label">BG</span>
+      <button data-k="bg" data-v="plain">白紙</button>
+      <button data-k="bg" data-v="grid">方眼</button>
+      <button data-k="bg" data-v="dot">ドット</button>
+    </div>
+    <div class="panel-row">
+      <span class="label">THEME</span>
+      <button data-k="theme" data-v="auto">Auto</button>
+      <button data-k="theme" data-v="dark">Dark</button>
+      <button data-k="theme" data-v="pink">Pink</button>
+      <button data-k="theme" data-v="cyber">Cyber</button>
+    </div>
+    <div class="panel-row">
+      <span class="label">GLOW</span>
+      <button data-k="glow" data-v="off">Off</button>
+      <button data-k="glow" data-v="on">On</button>
+    </div>
+    <div class="panel-row">
+      <span class="label">INFO</span>
+      <button id="about-btn">About</button>
+    </div>
+    <div class="panel-row tips desktop-only">
+      <span>P:ペン E:消 [ ]:太さ 1-5:ページ Alt+クリック:スポイト Shift+ドラッグ:直線</span>
+    </div>
+    <div class="panel-row tips desktop-only">
+      <span>Ctrl/⌘ + Z/Y:Undo/Redo ・ +S:保存 ・ +C/V:コピー/貼付</span>
+    </div>
+  </div>
+
+  <div class="notice" id="notice" role="status" aria-live="polite"></div>
+
+  <div class="modal-backdrop" id="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal" id="modal">
+      <button class="modal-close" id="modal-close" aria-label="閉じる">Close</button>
+      <h2 id="modal-title">Tsui Board</h2>
+      <p class="modal-version">Version 1.0.0</p>
+
+      <h3>ABOUT</h3>
+      <p>雑に絵を書けるWebホワイトボード。5ページ切替・画像貼付・PNGコピー/保存に対応。データはブラウザ内にのみ保存され、外部サーバーへデータを送信しません。</p>
+      <p class="modal-hint">
+        ヘッダー ⋮ から設定パネル。Alt+クリックでスポイト、Shift+ドラッグで直線。<br>
+        --<a href="https://github.com/hajimetwi3/tsui-board/blob/main/README.md" target="_blank" rel="noopener noreferrer">詳細</a>--
+      </p>
+
+      <h3>DISCLAIMER</h3>
+      <p>本アプリは現状有姿で提供され、動作の正確性・可用性について一切の保証はありません。ローカルストレージ保存データは環境により失われる可能性があります。重要な描画は PNG として保存してください。ご利用は自己責任にてお願いします。</p>
+
+      <h3>LICENSE</h3>
+      <pre>MIT License
+
+Copyright (c) 2026 <a href="https://hajimetwi3.github.io/hajimetwi3/" target="_blank" rel="noopener noreferrer">Hajime Tsui</a>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</pre>
+
+      <h3>THIRD-PARTY</h3>
+      <p>外部ライブラリ・外部フォント・外部リソースへの依存はありません（バンドル済み／システムフォントのみ使用）。</p>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
